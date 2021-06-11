@@ -54,7 +54,7 @@
     <properties>
         <log4j-core.version>2.8</log4j-core.version>
         <mdrclient.version>3.0.0</mdrclient.version>
-        <share-common.version>4.0.0</share-common.version>
+        <share-common.version>4.2.0</share-common.version>
         <poi.version>5.0.0</poi.version>
         <poi-ooxml.version>5.0.0</poi-ooxml.version>
         <poi-ooxml-full.version>5.0.0</poi-ooxml-full.version>
