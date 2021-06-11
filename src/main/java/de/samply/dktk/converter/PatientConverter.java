@@ -97,12 +97,9 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.ss.util.RegionUtil;
 import org.apache.poi.ss.util.WorkbookUtil;
-import org.apache.poi.xssf.usermodel.XSSFRow;
-import org.apache.poi.xssf.usermodel.XSSFSheet;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTAutoFilter;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilter;
-import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
+import org.apache.poi.xssf.streaming.SXSSFRow;
+import org.apache.poi.xssf.streaming.SXSSFSheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 
 /**
  * Transform query results (list of patients) from the Centraxx based format to either excel or
@@ -111,6 +108,7 @@ import org.openxmlformats.schemas.spreadsheetml.x2006.main.CTFilterColumn;
 public class PatientConverter {
 
   private static final Logger logger = LogManager.getLogger(PatientConverter.class);
+  private static final int WORKBOOK_WINDOW = 300000;
 
   private static CellStyle validationErrorCellStyle;
 
@@ -230,6 +228,10 @@ public class PatientConverter {
     headerStyle.setFont(headerFont);
 
     Sheet infoSheet = workBook.createSheet("Info");
+    if (infoSheet instanceof SXSSFSheet) {
+      ((SXSSFSheet)infoSheet).trackAllColumnsForAutoSizing();
+    }
+
     Row headerRow = infoSheet.createRow(0);
     headerRow.setHeightInPoints(24);
     Cell headerCell = headerRow.createCell(0);
@@ -657,7 +659,8 @@ public class PatientConverter {
 
     queryTyp = queryResult;
 
-    Workbook workBook = new XSSFWorkbook();
+    // TODO: Reduce WORKBOOK_WINDOW in order to improve performance. Hint: First row is problematic
+    Workbook workBook = new SXSSFWorkbook(WORKBOOK_WINDOW);
 
     validationErrorCellStyle = workBook.createCellStyle();
     validationErrorCellStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
@@ -716,35 +719,21 @@ public class PatientConverter {
 
   private void filterValueInColumn(Sheet sheet, int columnIndex, String value) {
 
-    if (sheet != null && sheet instanceof XSSFSheet) {
+    if (sheet != null && sheet instanceof SXSSFSheet) {
 
-      CTAutoFilter autoFilter = ((XSSFSheet) sheet).getCTWorksheet().getAutoFilter();
-      if (autoFilter != null) {
-        filterValueInColumn((XSSFSheet) sheet, autoFilter, columnIndex, value);
-      }
-
-    }
-
-  }
-
-  private void filterValueInColumn(XSSFSheet sheet, CTAutoFilter autoFilter, int columnIndex,
-      String value) {
-
-    CTFilterColumn filterColumn = autoFilter.addNewFilterColumn();
-    filterColumn.setColId(columnIndex);
-    CTFilter filter = filterColumn.addNewFilters().addNewFilter();
-    filter.setVal(value);
-
-    for (final Row row : sheet) {
-      for (final Cell c : row) {
-        if (c.getColumnIndex() == columnIndex && !c.getStringCellValue().equals(value)) {
-          final XSSFRow r1 = (XSSFRow) c.getRow();
-          if (r1.getRowNum() > 2) { // skip header
-            r1.getCTRow().setHidden(true);
+      for (final Row row : sheet) {
+        for (final Cell c : row) {
+          if (c.getColumnIndex() == columnIndex && !c.getStringCellValue().equals(value)) {
+            final SXSSFRow r1 = (SXSSFRow) c.getRow();
+            if (r1.getRowNum() > 2 && r1.getRowStyle() != null) { // skip header
+              r1.getRowStyle().setHidden(true);
+            }
           }
         }
       }
+
     }
+
   }
 
   /**
@@ -766,7 +755,8 @@ public class PatientConverter {
     runningPatientId = 1;
     queryTyp = queryResult;
 
-    Workbook workBook = new XSSFWorkbook();
+    // TODO: Reduce WORKBOOK_WINDOW in order to improve performance. Hint: First row is problematic
+    Workbook workBook = new SXSSFWorkbook(WORKBOOK_WINDOW);
 
     validationErrorCellStyle = workBook.createCellStyle();
     validationErrorCellStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
@@ -845,6 +835,10 @@ public class PatientConverter {
         // If not, create it and begin a header row with its own ID and the Parent ID (if available)
         // , as well as the patient id for deeper leaves
         sheet = workBook.createSheet(safeName);
+        if (sheet instanceof SXSSFSheet) {
+          ((SXSSFSheet)sheet).trackAllColumnsForAutoSizing();
+        }
+
         headerRow = sheet.createRow(ROW_INDEX_HEADER);
         headerDestinationRow = sheet.createRow(ROW_INDEX_DESTINATION);
         headerDktkIdRow = sheet.createRow(ROW_INDEX_DKTK_ID);

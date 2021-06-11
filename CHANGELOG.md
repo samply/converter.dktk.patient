@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.0 - 2021-06-11]
+### Fixed
+- Apache POI 5.0.0 for export and quality report
+
 ## [2.1.0 - 2020-11-09]
 ### Changed
-- Apache POI 5.0.0 (SXSSFWorkbook)
+- Apache POI 5.0.0 (SSXSSFWorkbook)
 
 ## [2.0.0 - 2020-11-09]
 - Github release
