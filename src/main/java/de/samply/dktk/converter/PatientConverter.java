@@ -108,10 +108,11 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 public class PatientConverter {
 
   private static final Logger logger = LogManager.getLogger(PatientConverter.class);
-  private static final int WORKBOOK_WINDOW = 300000;
+  private static final int WORKBOOK_WINDOW = 30000000;
 
   private static CellStyle validationErrorCellStyle;
 
+  private int workbookWindow;
   private MdrClient mdrClient;
   private String mdrLinkUrl;
   private String mdrLinkPath = "/detail.xhtml?urn=";
@@ -131,7 +132,18 @@ public class PatientConverter {
    * @param mdrClient an already instantiated mdr client, linked to the correct metadata repository
    */
   public PatientConverter(MdrClient mdrClient) {
-    this(mdrClient, new ArrayList<MdrIdDatatype>());
+    this(mdrClient, new ArrayList<MdrIdDatatype>(), WORKBOOK_WINDOW);
+  }
+
+  /**
+   * Create the Patientconverter with an instance of an mdr client.
+   * Keep a variant without validator for backwards compatibility.
+   *
+   * @param mdrClient an already instantiated mdr client, linked to the correct metadata repository
+   * @param workbookWindow buffer size of workbook
+   */
+  public PatientConverter(MdrClient mdrClient, Integer workbookWindow) {
+    this(mdrClient, new ArrayList<MdrIdDatatype>(), workbookWindow);
   }
 
   /**
@@ -142,12 +154,20 @@ public class PatientConverter {
    * @param blacklist a list of mdr ids to be left out of the export
    */
   public PatientConverter(MdrClient mdrClient, List<MdrIdDatatype> blacklist) {
-    this.mdrClient = mdrClient;
-    this.validationHandling = EnumValidationHandling.NO_VALIDATION;
-    this.validator = null;
-    this.blacklist = blacklist;
-    URI mdrBaseUri = mdrClient.getBaseUri();
-    mdrLinkUrl = mdrBaseUri.getScheme() + "://" + mdrBaseUri.getHost();
+    this(mdrClient, blacklist, WORKBOOK_WINDOW);
+  }
+
+  /**
+   * Create the Patientconverter with an instance of an mdr client.
+   * Keep a variant without validator for backwards compatibility.
+   *
+   * @param mdrClient an already instantiated mdr client, linked to the correct metadata repository
+   * @param blacklist a list of mdr ids to be left out of the export
+   * @param workbookWindow size of workbook buffer
+   */
+  public PatientConverter(MdrClient mdrClient, List<MdrIdDatatype> blacklist,
+      Integer workbookWindow) {
+    this(mdrClient, null, EnumValidationHandling.NO_VALIDATION, blacklist, workbookWindow);
   }
 
   /**
@@ -172,12 +192,7 @@ public class PatientConverter {
    */
   public PatientConverter(MdrClient mdrClient, MdrValidator validator,
       EnumValidationHandling validationHandling) {
-    this.mdrClient = mdrClient;
-    this.validationHandling = validationHandling;
-    this.validator = validator;
-    this.blacklist = new ArrayList<>();
-    URI mdrBaseUri = mdrClient.getBaseUri();
-    mdrLinkUrl = mdrBaseUri.getScheme() + "://" + mdrBaseUri.getHost();
+    this(mdrClient, validator, validationHandling, new ArrayList<>(), WORKBOOK_WINDOW);
   }
 
   /**
@@ -194,10 +209,30 @@ public class PatientConverter {
       MdrValidator validator,
       EnumValidationHandling validationHandling,
       List<MdrIdDatatype> blacklist) {
+    this(mdrClient, validator, validationHandling, blacklist, WORKBOOK_WINDOW);
+  }
+
+  /**
+   * Create the Patientconverter with an instance of an mdr client, a validator, a validation
+   * handling option and a blacklist.
+   *
+   * @param mdrClient          an already instantiated mdr client, linked to the correct metadata
+   *                           repository
+   * @param validator          a pre-configured DTHValidator object
+   * @param validationHandling how should the patient converter handle invalid attributes
+   * @param blacklist          a list of mdr ids to be left out of the export
+   * @param workbookWindow     buffer size of workbook
+   */
+  public PatientConverter(MdrClient mdrClient,
+      MdrValidator validator,
+      EnumValidationHandling validationHandling,
+      List<MdrIdDatatype> blacklist,
+      Integer workbookWindow) {
     this.mdrClient = mdrClient;
     this.validationHandling = validationHandling;
     this.validator = validator;
     this.blacklist = blacklist;
+    this.workbookWindow = (workbookWindow != null) ? workbookWindow : WORKBOOK_WINDOW;
     URI mdrBaseUri = mdrClient.getBaseUri();
     mdrLinkUrl = mdrBaseUri.getScheme() + "://" + mdrBaseUri.getHost();
   }
@@ -660,7 +695,7 @@ public class PatientConverter {
     queryTyp = queryResult;
 
     // TODO: Reduce WORKBOOK_WINDOW in order to improve performance. Hint: First row is problematic
-    Workbook workBook = new SXSSFWorkbook(WORKBOOK_WINDOW);
+    Workbook workBook = new SXSSFWorkbook(workbookWindow);
 
     validationErrorCellStyle = workBook.createCellStyle();
     validationErrorCellStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());
@@ -756,7 +791,7 @@ public class PatientConverter {
     queryTyp = queryResult;
 
     // TODO: Reduce WORKBOOK_WINDOW in order to improve performance. Hint: First row is problematic
-    Workbook workBook = new SXSSFWorkbook(WORKBOOK_WINDOW);
+    Workbook workBook = new SXSSFWorkbook(workbookWindow);
 
     validationErrorCellStyle = workBook.createCellStyle();
     validationErrorCellStyle.setFillForegroundColor(IndexedColors.LIGHT_ORANGE.getIndex());

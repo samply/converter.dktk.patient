@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.2.2 - 2021-06-28]
+### Added
+- Export Worbook Window configurable
+
+
 ## [2.2.1 - 2021-06-16]
 ### Changed
 - Migrate Percentage Logger to share-common
