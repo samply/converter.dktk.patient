@@ -53,12 +53,10 @@
 
     <properties>
         <log4j-core.version>2.17.0</log4j-core.version>
-        <mdrclient.version>3.1.0-SNAPSHOT</mdrclient.version>
+        <mdrclient.version>3.1.0</mdrclient.version>
         <share-common.version>4.4.0</share-common.version>
         <poi.version>5.1.0</poi.version>
-        <poi-ooxml.version>5.1.0</poi-ooxml.version>
-        <poi-ooxml-full.version>5.1.0</poi-ooxml-full.version>
-        <common-mdrvalidator.version>3.1.0-SNAPSHOT</common-mdrvalidator.version>
+        <common-mdrvalidator.version>3.1.0</common-mdrvalidator.version>
         <commons-compress.version>1.21</commons-compress.version> <!--remove if new poi version
                                                                     with this version is available
                                                                    !-->
@@ -89,12 +87,12 @@
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>${poi-ooxml.version}</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml-full</artifactId>
-            <version>${poi-ooxml-full.version}</version>
+            <version>${poi.version}</version>
         </dependency>
         <dependency>
             <groupId>de.samply</groupId>
