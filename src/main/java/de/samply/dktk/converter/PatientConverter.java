@@ -80,8 +80,6 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.apache.poi.common.usermodel.HyperlinkType;
 import org.apache.poi.ss.usermodel.BorderStyle;
 import org.apache.poi.ss.usermodel.Cell;
@@ -100,6 +98,8 @@ import org.apache.poi.ss.util.WorkbookUtil;
 import org.apache.poi.xssf.streaming.SXSSFRow;
 import org.apache.poi.xssf.streaming.SXSSFSheet;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Transform query results (list of patients) from the Centraxx based format to either excel or
@@ -107,7 +107,7 @@ import org.apache.poi.xssf.streaming.SXSSFWorkbook;
  */
 public class PatientConverter {
 
-  private static final Logger logger = LogManager.getLogger(PatientConverter.class);
+  private static final Logger logger = LoggerFactory.getLogger(PatientConverter.class);
   private static final int WORKBOOK_WINDOW = 30000000;
 
   private static CellStyle validationErrorCellStyle;
@@ -710,6 +710,7 @@ public class PatientConverter {
         transformQueryResultToContainerList(queryResult);
     PercentageLogger percentageLogger = new PercentageLogger(logger, containerList.size(),
         "adding patients...");
+    percentageLogger.start();
     for (de.samply.share.model.common.Container patient : containerList) {
       percentageLogger.incrementCounter();
       addPatientDataToExcel(workBook, patient, sortRules);
@@ -722,6 +723,7 @@ public class PatientConverter {
 
     percentageLogger = new PercentageLogger(logger, workBook.getNumberOfSheets(),
         "adding sheets...");
+    percentageLogger.start();
     for (int i = 1; i < workBook.getNumberOfSheets(); i++) {
 
       percentageLogger.incrementCounter();
